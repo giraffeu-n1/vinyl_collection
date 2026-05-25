@@ -47,6 +47,10 @@ def _build_csrf_trusted_origins():
         if DEBUG:
             add(f'http://{host}')
 
+    # Timeweb App Platform: *.twc1.net (Django поддерживает wildcard в CSRF_TRUSTED_ORIGINS)
+    if _env_bool('DJANGO_TRUST_TIMEWEB_CSRF', True):
+        add('https://*.twc1.net')
+
     return origins
 
 
@@ -67,8 +71,7 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'collection.csrf_middleware.SameHostCsrfOriginMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    'collection.csrf_middleware.VinylCsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'collection.middleware.LoginRequiredMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -159,10 +162,14 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'album_list'
 LOGOUT_REDIRECT_URL = 'login'
 
+# Timeweb/nginx: без этого request.is_secure()=False при HTTPS → CSRF отклоняет Origin.
+if _env_bool('DJANGO_BEHIND_PROXY', True):
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_X_FORWARDED_HOST = True
+
 if not DEBUG:
     # Сессии в cookie — не нужна таблица django_session на БД в /tmp.
     SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     _secure_cookies = _env_bool('DJANGO_SECURE_COOKIES', False)
     SESSION_COOKIE_SECURE = _secure_cookies
     CSRF_COOKIE_SECURE = _secure_cookies

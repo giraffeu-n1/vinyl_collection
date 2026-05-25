@@ -59,7 +59,8 @@ sh scripts/start_production.sh
 | Ключ | Пример значения |
 |------|-----------------|
 | `DJANGO_SECRET_KEY` | длинная случайная строка (сгенерируйте новую!) |
-| `DJANGO_DEBUG` | **`False`** (если `True` — на экране будут подробные ошибки, как сейчас) |
+| `DJANGO_DEBUG` | **`False`** (если `True`, CSRF часто ломается без прокси-заголовков — оставьте `False` на проде) |
+| `DJANGO_BEHIND_PROXY` | `True` (по умолчанию; не отключайте на Timeweb) |
 | `DATABASE_PATH` | `/tmp/vinyl_collection.sqlite3` (опционально, скрипт запуска задаёт сам) |
 | `DJANGO_ALLOWED_HOSTS` | `giraffeu-n1-vinyl-collection-1635.twc1.net` или `*` |
 | `DJANGO_CSRF_TRUSTED_ORIGINS` | `https://giraffeu-n1-vinyl-collection-1635.twc1.net` (можно не задавать — код добавит Origin того же хоста автоматически) |
