@@ -11,6 +11,7 @@ env/
 /db.sqlite3
 /media/
 staticfiles/
+BUILD_COMMIT.txt
 .env
 *.log
 
