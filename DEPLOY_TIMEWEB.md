@@ -36,8 +36,10 @@ pip3 install --upgrade -r requirements-prod.txt && python3 manage.py migrate --n
 
 ### Команда запуска
 
+Миграции при старте нужны, если база на перезаписываемом диске:
+
 ```bash
-gunicorn vinylsite.wsgi:application --bind 0.0.0.0:8000 --workers 2 --timeout 120
+python3 manage.py migrate --noinput && gunicorn vinylsite.wsgi:application --bind 0.0.0.0:8000 --workers 2 --timeout 120
 ```
 
 ## 3. Переменные окружения
@@ -86,6 +88,15 @@ cd c:\metrica\vinyl_collection
 2. Войдите как `vinyladmin`
 3. Проверьте каталог, фото, раздел **Пользователи**
 4. Статика (CSS) — через WhiteNoise, отдельный nginx не обязателен
+
+### Server Error (500)
+
+1. Откройте **Логи приложения** (не только сборки) в App Platform.
+2. Проверьте `https://ваш-домен/health/` — должен вернуть `{"status": "ok"}`. Если health работает, а главная — 500, смотрите логи при открытии `/login/`.
+3. Обновите код из GitHub (исправлена раздача статики) и **пересоберите** приложение.
+4. В **команде запуска** добавьте `migrate` (см. выше).
+5. Убедитесь, что в сборке есть `collectstatic`.
+6. При ошибке SQLite: загрузите `db.sqlite3` или задайте `DATABASE_PATH` на постоянный том.
 
 ### Ошибка DisallowedHost
 

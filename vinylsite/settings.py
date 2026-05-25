@@ -19,11 +19,8 @@ SECRET_KEY = os.environ.get(
     'django-insecure-&50z88s_9*e-zzy+w46l5e7850-(rli(r2eu1(_j2po$!5p@u4',
 )
 
-ALLOWED_HOSTS = [
-    h.strip()
-    for h in os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
-    if h.strip()
-]
+_allowed_raw = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1')
+ALLOWED_HOSTS = [h.strip() for h in _allowed_raw.split(',') if h.strip()] or ['*']
 
 CSRF_TRUSTED_ORIGINS = [
     o.strip()
@@ -74,10 +71,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'vinylsite.wsgi.application'
 
+_db_name = os.environ.get('DATABASE_PATH', str(BASE_DIR / 'db.sqlite3'))
+Path(_db_name).parent.mkdir(parents=True, exist_ok=True)
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': _db_name,
         'OPTIONS': {
             'timeout': 60,
         },
@@ -111,7 +111,7 @@ STORAGES = {
         'BACKEND': (
             'django.contrib.staticfiles.storage.StaticFilesStorage'
             if DEBUG
-            else 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+            else 'whitenoise.storage.CompressedStaticFilesStorage'
         ),
     },
 }
@@ -127,7 +127,29 @@ LOGOUT_REDIRECT_URL = 'login'
 
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+    _secure_cookies = _env_bool('DJANGO_SECURE_COOKIES', True)
+    SESSION_COOKIE_SECURE = _secure_cookies
+    CSRF_COOKIE_SECURE = _secure_cookies
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+}
