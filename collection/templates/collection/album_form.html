@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} — Коллекция винила{% endblock %}
+
+{% block content %}
+<div class="form-card wide">
+  <h1 class="page-title">{{ title }}</h1>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="form-group">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+          <ul class="errorlist">
+            {% for error in field.errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+        {% if field.help_text %}
+          <p class="helptext">{{ field.help_text }}</p>
+        {% endif %}
+      </div>
+    {% endfor %}
+
+    {% if is_create %}
+      <div class="form-group">
+        <label for="new_photos">Фотографии альбома</label>
+        <input type="file" id="new_photos" name="new_photos" accept="image/*" multiple>
+        <p class="helptext">Можно выбрать несколько файлов (обложка, задник, этикетка).</p>
+      </div>
+    {% endif %}
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Сохранить</button>
+      <a href="{% if album %}{% url 'album_detail' album.pk %}{% else %}{% url 'album_list' %}{% endif %}" class="btn btn-secondary">Отмена</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

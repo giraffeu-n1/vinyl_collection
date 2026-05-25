@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Коллекция винила{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'collection/css/vinyl.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="{% if user.is_authenticated %}{% url 'album_list' %}{% else %}{% url 'login' %}{% endif %}" class="logo">💿 <span>Коллекция</span> винила</a>
+      <nav class="nav-links">
+        {% if user.is_authenticated %}
+        <a href="{% url 'album_list' %}">Каталог</a>
+        <a href="{% url 'artist_list' %}">Группы</a>
+        <a href="{% url 'wishlist_list' %}">Wishlist</a>
+        {% endif %}
+        {% if is_collection_admin %}
+          <a href="{% url 'album_create' %}">+ Добавить альбом</a>
+          <a href="{% url 'admin_users' %}">Пользователи</a>
+        {% endif %}
+        {% if user.is_authenticated %}
+          <span class="user-name">{{ user.username }}{% if not is_collection_admin %} <span class="user-badge">просмотр</span>{% endif %}</span>
+          <form action="{% url 'logout' %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-secondary" style="padding:0.4rem 0.85rem;">Выйти</button>
+          </form>
+        {% else %}
+          <a href="{% url 'login' %}">Войти</a>
+          <a href="{% url 'register' %}" class="btn btn-primary" style="padding:0.4rem 0.85rem;">Регистрация</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}
+          <li class="message {{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+  Коллекция винила — каталог музыкальных альбомов
+  </footer>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

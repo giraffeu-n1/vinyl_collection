@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Wishlist — Коллекция винила{% endblock %}
+
+{% block content %}
+<div class="wishlist-header">
+  <div>
+    <h1 class="page-title">Wishlist</h1>
+    <p class="page-subtitle">Пластинки, которые хочется найти</p>
+  </div>
+  {% if is_collection_admin %}
+    <a href="{% url 'wishlist_create' %}" class="btn btn-primary">+ Добавить</a>
+  {% endif %}
+</div>
+
+{% if items %}
+  <div class="table-wrap">
+    <table class="data-table wishlist-table">
+      <thead>
+        <tr>
+          <th>Группа</th>
+          <th>Альбом</th>
+          <th>Фото</th>
+          <th>Примечание</th>
+          {% if is_collection_admin %}<th class="col-actions">Действия</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+          <tr>
+            <td class="col-artist">{{ item.artist }}</td>
+            <td class="col-title">{{ item.title }}</td>
+            <td class="col-photo">
+              {% if item.photo %}
+                <button type="button" class="wishlist-photo-btn" data-lightbox-src="{{ item.photo.url }}" data-lightbox-caption="{{ item.artist }} — {{ item.title }}" data-lightbox-index="{{ forloop.counter0 }}">
+                  <img src="{{ item.photo.url }}" alt="{{ item.title }}" class="wishlist-thumb">
+                </button>
+              {% else %}
+                <span class="no-photo">—</span>
+              {% endif %}
+            </td>
+            <td class="col-note">{% if item.note %}{{ item.note }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+            {% if is_collection_admin %}
+              <td class="col-actions">
+                <a href="{% url 'wishlist_edit' item.pk %}" class="btn btn-secondary btn-sm">Изменить</a>
+                <a href="{% url 'wishlist_delete' item.pk %}" class="btn btn-danger btn-sm">Удалить</a>
+              </td>
+            {% endif %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include 'collection/partials/lightbox.html' %}
+{% else %}
+  <div class="empty-state">
+    <p>Wishlist пуст.</p>
+    {% if is_collection_admin %}
+      <a href="{% url 'wishlist_create' %}" class="btn btn-primary">Добавить</a>
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if items %}
+<script src="{% static 'collection/js/vinyl.js' %}"></script>
+{% endif %}
+{% endblock %}

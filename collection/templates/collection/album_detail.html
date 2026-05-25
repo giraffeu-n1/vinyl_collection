@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ album.artist }} — {{ album.title }}{% endblock %}
+
+{% block content %}
+<div class="album-detail">
+  <div>
+    {% if album.photos.all %}
+      <div class="photo-gallery" data-gallery>
+        {% for photo in album.photos.all %}
+          <button type="button"
+                  class="gallery-thumb{% if photo.is_primary %} is-primary{% endif %}"
+                  data-lightbox-src="{{ photo.image.url }}"
+                  data-lightbox-caption="{{ album.artist }} — {{ album.title }} ({{ forloop.counter }}/{{ album.photos.count }})"
+                  data-lightbox-index="{{ forloop.counter0 }}">
+            <img src="{{ photo.image.url }}" alt="{{ album.title }} — фото {{ forloop.counter }}">
+            {% if photo.is_primary %}<span class="photo-badge">Обложка</span>{% endif %}
+            <span class="gallery-zoom-hint">Нажмите для увеличения</span>
+          </button>
+        {% endfor %}
+      </div>
+    {% elif album.cover %}
+      <button type="button" class="gallery-thumb single" data-lightbox-src="{{ album.cover.url }}" data-lightbox-caption="{{ album.artist }} — {{ album.title }}" data-lightbox-index="0">
+        <img src="{{ album.cover.url }}" alt="{{ album.title }}" class="album-detail-cover">
+        <span class="gallery-zoom-hint">Нажмите для увеличения</span>
+      </button>
+    {% endif %}
+  </div>
+  <div class="album-detail-meta">
+    <p class="artist">{{ album.artist }}</p>
+    <h1>{{ album.title }}</h1>
+
+    {% if album.description %}
+      <div class="album-description">{{ album.description }}</div>
+    {% else %}
+      <p class="page-subtitle">Описание не указано.</p>
+    {% endif %}
+
+    <div class="album-actions">
+      <a href="{% url 'album_list' %}" class="btn btn-secondary">← К каталогу</a>
+      {% if is_collection_admin %}
+        <a href="{% url 'album_edit' album.pk %}" class="btn btn-primary">Редактировать</a>
+        <a href="{% url 'album_delete' album.pk %}" class="btn btn-danger">Удалить альбом</a>
+      {% endif %}
+    </div>
+
+    <p class="meta-small">
+      Добавил: {{ album.owner.username }} · {{ album.created_at|date:"d.m.Y H:i" }}
+      {% if album.photos.count %} · {{ album.photos.count }} фото{% endif %}
+    </p>
+  </div>
+</div>
+
+{% include 'collection/partials/lightbox.html' %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'collection/js/vinyl.js' %}"></script>
+{% endblock %}

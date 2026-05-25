@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Пользователи — Коллекция винила{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Активация пользователей</h1>
+<p class="page-subtitle">Новые регистрации не могут войти, пока вы не активируете аккаунт.</p>
+
+{% if pending_users %}
+  <ul class="user-activation-list">
+    {% for u in pending_users %}
+      <li class="user-activation-item">
+        <div>
+          <strong>{{ u.username }}</strong>
+          {% if u.email %}<span class="meta-small"> · {{ u.email }}</span>{% endif %}
+          <span class="meta-small"> · {{ u.date_joined|date:"d.m.Y H:i" }}</span>
+        </div>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="user_id" value="{{ u.pk }}">
+          <button type="submit" class="btn btn-primary btn-sm">Активировать</button>
+        </form>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="page-subtitle">Нет ожидающих активации пользователей.</p>
+{% endif %}
+
+<div class="form-actions" style="margin-top: 2rem;">
+  <a href="{% url 'album_list' %}" class="btn btn-secondary">← К каталогу</a>
+</div>
+{% endblock %}

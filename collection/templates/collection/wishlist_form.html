@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} — Wishlist{% endblock %}
+
+{% block content %}
+<div class="form-card wide">
+  <h1 class="page-title">{{ title }}</h1>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="form-group">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+          <ul class="errorlist">
+            {% for error in field.errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+        {% if field.help_text %}
+          <p class="helptext">{{ field.help_text }}</p>
+        {% endif %}
+        {% if item and field.name == 'photo' and item.photo %}
+          <p class="helptext">Текущее фото:</p>
+          <img src="{{ item.photo.url }}" alt="" class="wishlist-form-preview">
+        {% endif %}
+      </div>
+    {% endfor %}
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Сохранить</button>
+      <a href="{% url 'wishlist_list' %}" class="btn btn-secondary">Отмена</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

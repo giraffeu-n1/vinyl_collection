@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ artist }} — Группы{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb">
+  <a href="{% url 'artist_list' %}">Группы</a>
+  <span class="breadcrumb-sep">/</span>
+  <span>{{ artist }}</span>
+</nav>
+
+<h1 class="page-title">{{ artist }}</h1>
+<p class="page-subtitle">
+  {{ albums|length }}
+  {% if albums|length == 1 %}альбом{% elif albums|length >= 2 and albums|length <= 4 %}альбома{% else %}альбомов{% endif %}
+  в коллекции
+</p>
+
+<div class="album-grid">
+  {% for album in albums %}
+    <article class="album-card">
+      <a href="{% url 'album_detail' album.pk %}">
+        {% if album.primary_image %}
+          <img src="{{ album.primary_image.url }}" alt="{{ album.title }}" class="album-cover">
+        {% else %}
+          <div class="album-cover-placeholder">♪</div>
+        {% endif %}
+        <div class="album-card-body">
+          <h2>{{ album.title }}</h2>
+          <p class="artist">{{ album.artist }}</p>
+          <p class="album-file-count">
+            {{ album.photo_count }}
+            {% if album.photo_count == 1 %}файл{% elif album.photo_count >= 2 and album.photo_count <= 4 %}файла{% else %}файлов{% endif %}
+          </p>
+        </div>
+      </a>
+      {% if is_collection_admin %}
+        <div class="album-card-footer">
+          <a href="{% url 'album_edit' album.pk %}" class="btn btn-secondary btn-sm">Редактировать</a>
+          <a href="{% url 'album_delete' album.pk %}" class="btn btn-danger btn-sm">Удалить</a>
+        </div>
+      {% endif %}
+    </article>
+  {% endfor %}
+</div>
+
+<div class="form-actions" style="margin-top: 2rem;">
+  <a href="{% url 'artist_list' %}" class="btn btn-secondary">← Все группы</a>
+  <a href="{% url 'album_list' %}" class="btn btn-secondary">Каталог</a>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Регистрация — Коллекция винила{% endblock %}
+
+{% block content %}
+<div class="form-card">
+  <h1 class="page-title">Регистрация</h1>
+  <p class="page-subtitle">
+    После регистрации администратор активирует аккаунт — затем можно войти и просматривать коллекцию.
+  </p>
+
+  <form method="post">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="form-group">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+          <ul class="errorlist">
+            {% for error in field.errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+        {% if field.help_text %}
+          <p class="helptext">{{ field.help_text }}</p>
+        {% endif %}
+      </div>
+    {% endfor %}
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Создать аккаунт</button>
+    </div>
+  </form>
+
+  <p class="auth-footer">
+    Уже есть аккаунт? <a href="{% url 'login' %}">Войти</a>
+  </p>
+</div>
+{% endblock %}

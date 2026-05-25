@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Удалить — Wishlist{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h1 class="page-title">Удалить запись?</h1>
+  <p class="page-subtitle">{{ item.artist }} — {{ item.title }}</p>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-actions">
+      <button type="submit" class="btn btn-danger">Да, удалить</button>
+      <a href="{% url 'wishlist_list' %}" class="btn btn-secondary">Отмена</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

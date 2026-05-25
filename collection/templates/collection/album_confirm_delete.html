@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Удалить альбом — Коллекция винила{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h1 class="page-title">Удалить альбом?</h1>
+  <p class="page-subtitle">
+    «{{ album.artist }} — {{ album.title }}» будет удалён из коллекции безвозвратно.
+    {% with n=album.photos.count %}
+      {% if n %}
+        Вместе с альбомом удалятся {{ n }}
+        {% if n == 1 %}фотография{% elif n >= 2 and n <= 4 %}фотографии{% else %}фотографий{% endif %}.
+      {% endif %}
+    {% endwith %}
+  </p>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-actions">
+      <button type="submit" class="btn btn-danger">Да, удалить</button>
+      <a href="{% url 'album_detail' album.pk %}" class="btn btn-secondary">Отмена</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

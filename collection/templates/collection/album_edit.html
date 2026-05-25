@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Редактировать — {{ album.artist }}{% endblock %}
+
+{% block content %}
+<div class="form-card edit-card">
+  <h1 class="page-title">Редактировать альбом</h1>
+  <p class="page-subtitle">{{ album.artist }} — {{ album.title }}</p>
+
+  <form method="post" enctype="multipart/form-data" class="edit-form">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="form-group">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+          <ul class="errorlist">
+            {% for error in field.errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+    {% endfor %}
+
+    <div class="form-group">
+      <label for="new_photos">Добавить фотографии</label>
+      <input type="file" id="new_photos" name="new_photos" accept="image/*" multiple>
+      <p class="helptext">Можно выбрать несколько файлов сразу.</p>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Сохранить</button>
+      <a href="{% url 'album_detail' album.pk %}" class="btn btn-secondary">Отмена</a>
+    </div>
+  </form>
+
+  <section class="photo-manager">
+    <h2 class="section-title">Фотографии ({{ photos|length }})</h2>
+    {% if photos %}
+      <div class="photo-edit-grid">
+        {% for photo in photos %}
+          <div class="photo-edit-item{% if photo.is_primary %} is-primary{% endif %}">
+            <button type="button" class="photo-thumb-btn" data-lightbox-src="{{ photo.image.url }}" data-lightbox-index="{{ forloop.counter0 }}">
+              <img src="{{ photo.image.url }}" alt="Фото {{ forloop.counter }}">
+            </button>
+            {% if photo.is_primary %}
+              <span class="photo-badge">Обложка</span>
+            {% endif %}
+            <div class="photo-edit-actions">
+              <div class="photo-rotate-group">
+                <span class="photo-rotate-label">Поворот ↻</span>
+                {% for deg in rotate_angles %}
+                  <form method="post" action="{% url 'photo_rotate' album.pk photo.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="degrees" value="{{ deg }}">
+                    <button type="submit" class="btn btn-secondary btn-sm btn-rotate" title="По часовой {{ deg }}°">{{ deg }}°</button>
+                  </form>
+                {% endfor %}
+              </div>
+              {% if not photo.is_primary %}
+                <form method="post" action="{% url 'photo_set_primary' album.pk photo.pk %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="next" value="edit">
+                  <button type="submit" class="btn btn-secondary btn-sm">Сделать обложкой</button>
+                </form>
+              {% endif %}
+              <form method="post" action="{% url 'photo_move' album.pk photo.pk %}" class="photo-move-form">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="edit">
+                <span class="photo-move-label">Перенести в альбом</span>
+                {% if other_albums %}
+                  <select name="target_album" class="photo-move-select">
+                    <option value="">— существующий альбом —</option>
+                    {% for other in other_albums %}
+                      <option value="{{ other.pk }}">{{ other.artist }} — {{ other.title }}</option>
+                    {% endfor %}
+                  </select>
+                  <span class="photo-move-or">или создать новый</span>
+                {% endif %}
+                <input type="text" name="new_artist" class="photo-move-input" maxlength="200" placeholder="Исполнитель" autocomplete="off">
+                <input type="text" name="new_title" class="photo-move-input" maxlength="200" placeholder="Название альбома" autocomplete="off">
+                <button type="submit" class="btn btn-secondary btn-sm">Перенести</button>
+              </form>
+              <form method="post" action="{% url 'photo_delete' album.pk photo.pk %}" onsubmit="return confirm('Удалить это фото?');">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="edit">
+                <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="page-subtitle">Фотографий пока нет. Добавьте их выше.</p>
+    {% endif %}
+  </section>
+
+  <section class="album-danger-zone">
+    <h2 class="section-title">Удаление альбома</h2>
+    <p class="helptext">
+      Альбом «{{ album.artist }} — {{ album.title }}» и все его фотографии будут удалены безвозвратно.
+    </p>
+    <a href="{% url 'album_delete' album.pk %}" class="btn btn-danger">Удалить альбом</a>
+  </section>
+</div>
+
+{% include 'collection/partials/lightbox.html' with photos=photos %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'collection/js/vinyl.js' %}"></script>
+{% endblock %}

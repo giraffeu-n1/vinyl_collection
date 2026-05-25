@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Каталог — Коллекция винила{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Каталог альбомов</h1>
+<p class="page-subtitle catalog-stats">
+  В коллекции
+  <strong>{{ total_album_count }}</strong>
+  {% if total_album_count == 1 %}альбом{% elif total_album_count >= 2 and total_album_count <= 4 %}альбома{% else %}альбомов{% endif %}
+  {% if search_query %}
+    · по запросу «{{ search_query }}» найдено
+    <strong>{{ albums|length }}</strong>
+    {% with n=albums|length %}
+      {% if n == 1 %}альбом{% elif n >= 2 and n <= 4 %}альбома{% else %}альбомов{% endif %}
+    {% endwith %}
+  {% endif %}
+</p>
+
+<form method="get" class="search-bar" action="{% url 'album_list' %}">
+  {{ search_form.q }}
+  <button type="submit" class="btn btn-primary">Найти</button>
+  {% if request.GET.q %}
+    <a href="{% url 'album_list' %}" class="btn btn-secondary">Сбросить</a>
+  {% endif %}
+</form>
+
+{% if albums %}
+  <div class="album-grid">
+    {% for album in albums %}
+      <article class="album-card">
+        <a href="{% url 'album_detail' album.pk %}">
+          {% if album.primary_image %}
+            <img src="{{ album.primary_image.url }}" alt="{{ album.title }}" class="album-cover">
+          {% else %}
+            <div class="album-cover-placeholder">♪</div>
+          {% endif %}
+          <div class="album-card-body">
+            <p class="album-card-rank">№{{ forloop.counter }}</p>
+            <h2>{{ album.title }}</h2>
+            <p class="artist">{{ album.artist }}</p>
+            <p class="album-file-count">
+              {% with n=album.photo_count %}
+                {{ n }}
+                {% if n == 1 %}файл{% elif n >= 2 and n <= 4 %}файла{% else %}файлов{% endif %}
+              {% endwith %}
+            </p>
+          </div>
+        </a>
+        {% if is_collection_admin %}
+          <div class="album-card-footer">
+            <a href="{% url 'album_edit' album.pk %}" class="btn btn-secondary btn-sm">Редактировать</a>
+            <a href="{% url 'album_delete' album.pk %}" class="btn btn-danger btn-sm">Удалить</a>
+          </div>
+        {% endif %}
+      </article>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty-state">
+    {% if request.GET.q %}
+      <p>По запросу «{{ request.GET.q }}» ничего не найдено.</p>
+      <a href="{% url 'album_list' %}" class="btn btn-secondary">Показать все альбомы</a>
+    {% else %}
+      <p>Коллекция пока пуста. Добавьте первый альбом!</p>
+      {% if is_collection_admin %}
+        <a href="{% url 'album_create' %}" class="btn btn-primary">Добавить альбом</a>
+      {% elif not user.is_authenticated %}
+        <a href="{% url 'register' %}" class="btn btn-primary">Зарегистрироваться</a>
+      {% endif %}
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}

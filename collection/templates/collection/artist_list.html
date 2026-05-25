@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Группы — Коллекция винила{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Группы</h1>
+<p class="page-subtitle">Исполнители в коллекции — выберите группу, чтобы увидеть альбомы</p>
+
+{% if artists %}
+  <ul class="artist-list">
+    {% for item in artists %}
+      <li>
+        <a href="{% url 'artist_detail' item.artist %}" class="artist-list-link">
+          <span class="artist-list-name">{{ item.artist }}</span>
+          <span class="artist-list-count">
+            {{ item.album_count }}
+            {% if item.album_count == 1 %}альбом{% elif item.album_count >= 2 and item.album_count <= 4 %}альбома{% else %}альбомов{% endif %}
+          </span>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <div class="empty-state">
+    <p>В коллекции пока нет альбомов.</p>
+    <a href="{% url 'album_list' %}" class="btn btn-secondary">К каталогу</a>
+  </div>
+{% endif %}
+{% endblock %}

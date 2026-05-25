@@ -1,0 +1,3 @@
+# Продакшен (Timeweb App Platform): requirements-prod.txt
+# Локальная разработка и импорт OCR: pip install -r requirements-dev.txt
+-r requirements-prod.txt
