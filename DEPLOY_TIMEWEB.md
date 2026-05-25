@@ -59,12 +59,14 @@ sh scripts/start_production.sh
 | Ключ | Пример значения |
 |------|-----------------|
 | `DJANGO_SECRET_KEY` | длинная случайная строка (сгенерируйте новую!) |
-| `DJANGO_DEBUG` | `False` (на время отладки 500 можно поставить `True` — увидите текст ошибки) |
+| `DJANGO_DEBUG` | **`False`** (если `True` — на экране будут подробные ошибки, как сейчас) |
 | `DATABASE_PATH` | `/tmp/vinyl_collection.sqlite3` (опционально, скрипт запуска задаёт сам) |
-| `DJANGO_ALLOWED_HOSTS` | `myvinyl.ru,www.myvinyl.ru` (без пробелов, через запятую) |
-| `DJANGO_CSRF_TRUSTED_ORIGINS` | `https://myvinyl.ru,https://www.myvinyl.ru` |
+| `DJANGO_ALLOWED_HOSTS` | `giraffeu-n1-vinyl-collection-1635.twc1.net` или `*` |
+| `DJANGO_CSRF_TRUSTED_ORIGINS` | `https://giraffeu-n1-vinyl-collection-1635.twc1.net` (можно не задавать — код добавит Origin того же хоста автоматически) |
 
-Timeweb также поддерживает переменную `DJANGO_ALLOWED_HOSTS` в документации — дублируйте домен в обеих настройках, если панель предлагает отдельное поле.
+Для домена Timeweb `*.twc1.net` достаточно указать хост в `DJANGO_ALLOWED_HOSTS` **или** оставить `*` — после деплоя с обновлённым кодом CSRF для POST с того же URL больше не падает.
+
+Свой домен: дублируйте в `DJANGO_CSRF_TRUSTED_ORIGINS` с префиксом `https://`.
 
 ## 4. Администратор после деплоя
 

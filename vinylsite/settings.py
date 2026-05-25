@@ -22,11 +22,35 @@ SECRET_KEY = os.environ.get(
 _allowed_raw = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1')
 ALLOWED_HOSTS = [h.strip() for h in _allowed_raw.split(',') if h.strip()] or ['*']
 
-CSRF_TRUSTED_ORIGINS = [
-    o.strip()
-    for o in os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '').split(',')
-    if o.strip()
-]
+
+def _build_csrf_trusted_origins():
+    origins = []
+    seen = set()
+
+    def add(origin: str):
+        origin = origin.strip().rstrip('/')
+        if origin and origin not in seen:
+            seen.add(origin)
+            origins.append(origin)
+
+    for item in os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '').split(','):
+        add(item)
+
+    add(os.environ.get('DJANGO_SITE_URL', '').strip().rstrip('/'))
+
+    for host in ALLOWED_HOSTS:
+        if not host or host == '*':
+            continue
+        if host.startswith('.'):
+            continue
+        add(f'https://{host}')
+        if DEBUG:
+            add(f'http://{host}')
+
+    return origins
+
+
+CSRF_TRUSTED_ORIGINS = _build_csrf_trusted_origins()
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -43,6 +67,7 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'collection.csrf_middleware.SameHostCsrfOriginMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'collection.middleware.LoginRequiredMiddleware',
