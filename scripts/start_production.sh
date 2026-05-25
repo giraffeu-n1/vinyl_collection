@@ -1,22 +1,26 @@
 #!/bin/sh
-# Запуск на Timeweb: данные из deploy-data/, БД в /tmp, migrate на этой БД, 1 worker.
+# Запуск на Timeweb: БД и media в /tmp (запись), данные из deploy-data/
 set -e
 cd "$(dirname "$0")/.." 2>/dev/null || true
 
-mkdir -p media /tmp
-
 export DATABASE_PATH=/tmp/vinyl_collection.sqlite3
+export MEDIA_ROOT_PATH=/tmp/vinyl_media
+
+mkdir -p /tmp "$MEDIA_ROOT_PATH"
 
 if [ -f deploy-data/db.sqlite3 ]; then
   cp -f deploy-data/db.sqlite3 "$DATABASE_PATH"
 fi
 
-# Схема auth/session на БД, с которой реально работает gunicorn
-python3 manage.py migrate --noinput
-
 if [ -d deploy-data/media ]; then
-  cp -r deploy-data/media/. media/ 2>/dev/null || true
+  cp -r deploy-data/media/. "$MEDIA_ROOT_PATH"/
+elif [ -d media ]; then
+  cp -r media/. "$MEDIA_ROOT_PATH"/
 fi
+
+chmod -R u+rwX "$MEDIA_ROOT_PATH" 2>/dev/null || true
+
+python3 manage.py migrate --noinput
 
 exec gunicorn vinylsite.wsgi:application \
   --bind 0.0.0.0:8000 \

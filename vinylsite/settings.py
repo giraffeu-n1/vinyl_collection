@@ -155,7 +155,20 @@ STORAGES = {
 }
 
 MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+
+if os.environ.get('MEDIA_ROOT_PATH'):
+    MEDIA_ROOT = Path(os.environ['MEDIA_ROOT_PATH'])
+elif not DEBUG:
+    # /app/media на Timeweb часто read-only — загрузки и поворот фото в /tmp
+    MEDIA_ROOT = Path('/tmp/vinyl_media')
+else:
+    MEDIA_ROOT = Path(BASE_DIR / 'media')
+
+try:
+    MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
+except OSError:
+    MEDIA_ROOT = Path('/tmp/vinyl_media')
+    MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

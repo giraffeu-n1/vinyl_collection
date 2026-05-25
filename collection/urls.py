@@ -27,7 +27,9 @@ def health_check(_request):
         'db_path': db_path,
         'db_exists': os.path.isfile(db_path),
         'deploy_data_db': os.path.isfile('deploy-data/db.sqlite3'),
+        'media_root': str(settings.MEDIA_ROOT),
         'media_exists': os.path.isdir(settings.MEDIA_ROOT),
+        'media_writable': os.access(settings.MEDIA_ROOT, os.W_OK),
         'whitenoise_finders': getattr(settings, 'WHITENOISE_USE_FINDERS', False),
     })
 

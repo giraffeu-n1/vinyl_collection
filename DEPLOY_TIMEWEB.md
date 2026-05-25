@@ -60,7 +60,9 @@ sh scripts/start_production.sh
 sh scripts/start_production.sh
 ```
 
-Скрипт копирует `deploy-data/`, выполняет **`migrate` на `/tmp/vinyl_collection.sqlite3`** (нужно для регистрации) и запускает gunicorn с **1 worker**.
+Скрипт копирует `deploy-data/` в **`/tmp/vinyl_collection.sqlite3`** (БД) и **`/tmp/vinyl_media`** (фото, с правом записи для поворота/загрузки), выполняет `migrate` и запускает gunicorn с **1 worker**.
+
+> Файлы, изменённые на сайте (поворот фото, новые загрузки), живут в `/tmp` до перезапуска контейнера. Чтобы сохранить их надолго: локально `prepare_deploy_data.ps1` → commit `deploy-data` → push → пересборка.
 
 ## 3. Переменные окружения
 
