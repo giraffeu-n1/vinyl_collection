@@ -28,8 +28,18 @@
 Порядок важен: сначала зависимости и статика, затем база и администратор.  
 `migrate` и `create_vinyl_admin` — **только здесь**, не в команде запуска (иначе блокировки SQLite).
 
+**Рекомендуется** (короткая строка — панель Timeweb не обрежет команду):
+
 ```bash
-pip3 install --upgrade -r requirements-prod.txt && git rev-parse --short HEAD > BUILD_COMMIT.txt 2>/dev/null || true && mkdir -p media && ([ -f deploy-data/db.sqlite3 ] && cp deploy-data/db.sqlite3 db.sqlite3 || true) && ([ -d deploy-data/media ] && cp -r deploy-data/media/. media/ || true) && python3 manage.py collectstatic --noinput && python3 manage.py migrate --noinput && python3 manage.py create_vinyl_admin
+sh scripts/build_production.sh
+```
+
+Скрипт: `scripts/build_production.sh` (pip, `BUILD_COMMIT.txt`, копирование `deploy-data/`, `collectstatic`, `migrate`, `create_vinyl_admin`).
+
+Если нужна одна строка без скрипта (без `media/.` в конце — иначе панель может обрезать `cp -r`):
+
+```bash
+pip3 install --upgrade -r requirements-prod.txt && git rev-parse --short HEAD > BUILD_COMMIT.txt 2>/dev/null || true && mkdir -p media && ([ -f deploy-data/db.sqlite3 ] && cp deploy-data/db.sqlite3 db.sqlite3 || true) && ([ -d deploy-data/media ] && cp -r deploy-data/media . || true) && python3 manage.py collectstatic --noinput && python3 manage.py migrate --noinput && python3 manage.py create_vinyl_admin
 ```
 
 > Опечатка **`collectstat`** ломает сборку — нужно **`collectstatic`** (с буквой **ic** в конце).
