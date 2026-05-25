@@ -7,9 +7,9 @@ venv/
 .venv/
 env/
 
-# Django
-db.sqlite3
-media/
+# Django (локально; для Timeweb — копия в deploy-data/)
+/db.sqlite3
+/media/
 staticfiles/
 .env
 *.log

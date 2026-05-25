@@ -13,12 +13,7 @@
 
 Корень приложения для Timeweb — каталог, где лежит `manage.py`.
 
-Загрузите на сервер (через git) также:
-
-- `db.sqlite3` — база с альбомами (если переносите с локального ПК)
-- папку `media/` — все фотографии
-
-> **Важно:** на App Platform диск может сбрасываться при пересборке. После первого деплоя загрузите `db.sqlite3` и `media/` через SFTP/консоль или настройте постоянный том. Делайте резервные копии.
+**SSH/SFTP к контейнеру недоступен** — Timeweb деплоит только из Git. База и фото кладутся в папку `deploy-data/` в репозитории (см. раздел 5).
 
 ## 2. Создание приложения в App Platform
 
@@ -34,7 +29,7 @@
 `migrate` и `create_vinyl_admin` — **только здесь**, не в команде запуска (иначе блокировки SQLite).
 
 ```bash
-pip3 install --upgrade -r requirements-prod.txt && python3 manage.py collectstatic --noinput && python3 manage.py migrate --noinput && python3 manage.py create_vinyl_admin
+pip3 install --upgrade -r requirements-prod.txt && mkdir -p media && ([ -f deploy-data/db.sqlite3 ] && cp deploy-data/db.sqlite3 db.sqlite3 || true) && ([ -d deploy-data/media ] && cp -r deploy-data/media/. media/ || true) && python3 manage.py collectstatic --noinput && python3 manage.py migrate --noinput && python3 manage.py create_vinyl_admin
 ```
 
 `create_vinyl_admin` — встроенная команда проекта (только Django, без OCR и лишних пакетов).
@@ -71,21 +66,28 @@ Timeweb также поддерживает переменную `DJANGO_ALLOWED
 
 **Сразу после первого входа смените пароль** (админка Django `/admin/` → пользователи) или задайте свой пароль локально и пересоберите.
 
-## 5. Перенос данных с локального компьютера
+## 5. Перенос базы и фото (через Git)
 
-На своём ПК (в каталоге проекта):
+1. На ПК в каталоге проекта:
 
 ```powershell
 cd c:\metrica\vinyl_collection
-# убедитесь, что есть db.sqlite3 и media/
+.\scripts\prepare_deploy_data.ps1
 ```
 
-После деплоя загрузите через **файловый менеджер / SFTP** хостинга в корень приложения (рядом с `manage.py`):
+2. Отправьте на GitHub:
 
-- `db.sqlite3`
-- каталог `media/` целиком
+```powershell
+git add deploy-data
+git commit -m "Add database and media for deploy"
+git push origin main
+```
 
-Перезапустите приложение в панели.
+3. В Timeweb App Platform → **Пересобрать** приложение.
+
+При сборке файлы из `deploy-data/` копируются в `db.sqlite3` и `media/`.
+
+> Репозиторий лучше сделать **приватным**. Обновили коллекцию локально — снова `prepare_deploy_data.ps1`, commit, push, пересборка.
 
 ## 6. Проверка
 
@@ -100,7 +102,7 @@ cd c:\metrica\vinyl_collection
 2. Проверьте `https://ваш-домен/health/` — должен вернуть `{"status": "ok"}`.
 3. **Не дублируйте** `migrate` в команде запуска — только в сборке (см. выше).
 4. Убедитесь, что в сборке есть `collectstatic` **до** `migrate`.
-5. При ошибке SQLite: загрузите `db.sqlite3` или задайте `DATABASE_PATH` на постоянный том.
+5. Пустой каталог: проверьте, что в Git есть `deploy-data/db.sqlite3` и `deploy-data/media/`, и снова пересоберите.
 6. Пересоберите приложение после изменения команд.
 
 ### Ошибка DisallowedHost
