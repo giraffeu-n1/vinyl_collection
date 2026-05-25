@@ -30,16 +30,21 @@
 
 ### Команда сборки
 
+Порядок важен: сначала зависимости и статика, затем база и администратор.  
+`migrate` и `create_vinyl_admin` — **только здесь**, не в команде запуска (иначе блокировки SQLite).
+
 ```bash
-pip3 install --upgrade -r requirements-prod.txt && python3 manage.py migrate --noinput && python3 manage.py collectstatic --noinput && python3 manage.py create_vinyl_admin
+pip3 install --upgrade -r requirements-prod.txt && python3 manage.py collectstatic --noinput && python3 manage.py migrate --noinput && python3 manage.py create_vinyl_admin
 ```
+
+`create_vinyl_admin` — встроенная команда проекта (только Django, без OCR и лишних пакетов).
 
 ### Команда запуска
 
-Миграции при старте нужны, если база на перезаписываемом диске:
+Только gunicorn, **без** `migrate`:
 
 ```bash
-python3 manage.py migrate --noinput && gunicorn vinylsite.wsgi:application --bind 0.0.0.0:8000 --workers 2 --timeout 120
+gunicorn vinylsite.wsgi:application --bind 0.0.0.0:8000 --workers 2 --timeout 120
 ```
 
 ## 3. Переменные окружения
@@ -91,12 +96,12 @@ cd c:\metrica\vinyl_collection
 
 ### Server Error (500)
 
-1. Откройте **Логи приложения** (не только сборки) в App Platform.
-2. Проверьте `https://ваш-домен/health/` — должен вернуть `{"status": "ok"}`. Если health работает, а главная — 500, смотрите логи при открытии `/login/`.
-3. Обновите код из GitHub (исправлена раздача статики) и **пересоберите** приложение.
-4. В **команде запуска** добавьте `migrate` (см. выше).
-5. Убедитесь, что в сборке есть `collectstatic`.
-6. При ошибке SQLite: загрузите `db.sqlite3` или задайте `DATABASE_PATH` на постоянный том.
+1. Откройте **Логи приложения** и **лог сборки** в App Platform.
+2. Проверьте `https://ваш-домен/health/` — должен вернуть `{"status": "ok"}`.
+3. **Не дублируйте** `migrate` в команде запуска — только в сборке (см. выше).
+4. Убедитесь, что в сборке есть `collectstatic` **до** `migrate`.
+5. При ошибке SQLite: загрузите `db.sqlite3` или задайте `DATABASE_PATH` на постоянный том.
+6. Пересоберите приложение после изменения команд.
 
 ### Ошибка DisallowedHost
 
