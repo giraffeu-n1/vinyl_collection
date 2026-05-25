@@ -52,5 +52,4 @@ urlpatterns = [
     path('login/', views.VinylLoginView.as_view(), name='login'),
     path('logout/', views.VinylLogoutView.as_view(), name='logout'),
     path('register/', views.register, name='register'),
-    path('admin/users/', views.admin_users, name='admin_users'),
 ]

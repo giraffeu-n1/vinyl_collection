@@ -4,7 +4,11 @@ from django.contrib import admin
 from django.urls import include, path, re_path
 from django.views.static import serve
 
+from collection.views import admin_users
+
 urlpatterns = [
+    # До admin.site.urls — иначе catch-all Django Admin отдаёт 404 на admin/users/
+    path('admin/users/', admin_users, name='admin_users'),
     path('admin/', admin.site.urls),
     path('', include('collection.urls')),
 ]
