@@ -11,7 +11,14 @@ from django.urls import reverse_lazy
 from django.views.decorators.http import require_POST
 
 from .decorators import admin_required
-from .forms import AlbumCreateForm, AlbumEditForm, RegisterForm, SearchForm, WishlistForm
+from .forms import (
+    AlbumCreateForm,
+    AlbumEditForm,
+    RegisterForm,
+    SearchForm,
+    VinylAuthenticationForm,
+    WishlistForm,
+)
 from .models import Album, AlbumPhoto, WishlistItem
 logger = logging.getLogger(__name__)
 
@@ -251,6 +258,7 @@ def album_delete(request, pk):
 
 class VinylLoginView(LoginView):
     template_name = 'collection/login.html'
+    authentication_form = VinylAuthenticationForm
     redirect_authenticated_user = True
 
 
@@ -358,6 +366,11 @@ def admin_users(request):
         is_active=False,
         is_staff=False,
     ).order_by('date_joined')
+    recent_active = User.objects.filter(
+        is_active=True,
+        is_staff=False,
+    ).order_by('-last_login', '-date_joined')[:10]
     return render(request, 'collection/admin_users.html', {
         'pending_users': pending_users,
+        'recent_active': recent_active,
     })

@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.models import User
 from .models import Album, WishlistItem
 
@@ -28,6 +28,33 @@ class AlbumMetadataForm(forms.ModelForm):
 AlbumCreateForm = AlbumMetadataForm
 AlbumEditForm = AlbumMetadataForm
 AlbumForm = AlbumMetadataForm
+
+
+class VinylAuthenticationForm(AuthenticationForm):
+    """Понятная ошибка, если пароль верный, но аккаунт ещё не активирован."""
+
+    error_messages = {
+        **AuthenticationForm.error_messages,
+        'inactive': (
+            'Аккаунт зарегистрирован, но ещё не активирован. '
+            'Дождитесь подтверждения администратором коллекции.'
+        ),
+    }
+
+    def clean(self):
+        username = self.cleaned_data.get('username')
+        password = self.cleaned_data.get('password')
+        if username and password:
+            inactive = User.objects.filter(
+                username__iexact=username,
+                is_active=False,
+            ).first()
+            if inactive and inactive.check_password(password):
+                raise forms.ValidationError(
+                    self.error_messages['inactive'],
+                    code='inactive',
+                )
+        return super().clean()
 
 
 class RegisterForm(UserCreationForm):
