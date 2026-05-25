@@ -9,8 +9,11 @@ $db = Join-Path $root 'db.sqlite3'
 if (-not (Test-Path $db)) {
     Write-Error "Не найден $db"
 }
+Push-Location $root
+python manage.py migrate --noinput
+Pop-Location
 Copy-Item -Path $db -Destination (Join-Path $deployData 'db.sqlite3') -Force
-Write-Host "OK: db.sqlite3"
+Write-Host "OK: db.sqlite3 (migrations applied)"
 
 $mediaSrc = Join-Path $root 'media'
 $mediaDst = Join-Path $deployData 'media'

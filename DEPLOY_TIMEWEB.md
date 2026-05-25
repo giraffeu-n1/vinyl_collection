@@ -32,6 +32,8 @@
 pip3 install --upgrade -r requirements-prod.txt && mkdir -p media && ([ -f deploy-data/db.sqlite3 ] && cp deploy-data/db.sqlite3 db.sqlite3 || true) && ([ -d deploy-data/media ] && cp -r deploy-data/media/. media/ || true) && python3 manage.py collectstatic --noinput && python3 manage.py migrate --noinput && python3 manage.py create_vinyl_admin
 ```
 
+> Опечатка **`collectstat`** ломает сборку — нужно **`collectstatic`** (с буквой **ic** в конце).
+
 `create_vinyl_admin` — встроенная команда проекта (только Django, без OCR и лишних пакетов).
 
 ### Команда запуска
@@ -45,8 +47,10 @@ sh scripts/start_production.sh
 Или одной строкой:
 
 ```bash
-sh -c 'mkdir -p media /tmp && cp -f deploy-data/db.sqlite3 /tmp/vinyl_collection.sqlite3 2>/dev/null; cp -r deploy-data/media/. media/ 2>/dev/null; export DATABASE_PATH=/tmp/vinyl_collection.sqlite3; exec gunicorn vinylsite.wsgi:application --bind 0.0.0.0:8000 --workers 1 --timeout 120'
+sh scripts/start_production.sh
 ```
+
+Скрипт копирует `deploy-data/`, выполняет **`migrate` на `/tmp/vinyl_collection.sqlite3`** (нужно для регистрации) и запускает gunicorn с **1 worker**.
 
 ## 3. Переменные окружения
 

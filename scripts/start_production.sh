@@ -1,15 +1,18 @@
 #!/bin/sh
-# Запуск на Timeweb App Platform (без SFTP): данные из deploy-data/, одна worker для SQLite.
+# Запуск на Timeweb: данные из deploy-data/, БД в /tmp, migrate на этой БД, 1 worker.
 set -e
 cd "$(dirname "$0")/.." 2>/dev/null || true
 
-mkdir -p media
-mkdir -p /tmp
+mkdir -p media /tmp
+
+export DATABASE_PATH=/tmp/vinyl_collection.sqlite3
 
 if [ -f deploy-data/db.sqlite3 ]; then
-  cp -f deploy-data/db.sqlite3 /tmp/vinyl_collection.sqlite3
-  export DATABASE_PATH=/tmp/vinyl_collection.sqlite3
+  cp -f deploy-data/db.sqlite3 "$DATABASE_PATH"
 fi
+
+# Схема auth/session на БД, с которой реально работает gunicorn
+python3 manage.py migrate --noinput
 
 if [ -d deploy-data/media ]; then
   cp -r deploy-data/media/. media/ 2>/dev/null || true

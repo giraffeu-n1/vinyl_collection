@@ -1,6 +1,9 @@
+import logging
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.db import DatabaseError, IntegrityError
 from django.contrib.auth.views import LoginView, LogoutView
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
@@ -10,6 +13,8 @@ from django.views.decorators.http import require_POST
 from .decorators import admin_required
 from .forms import AlbumCreateForm, AlbumEditForm, RegisterForm, SearchForm, WishlistForm
 from .models import Album, AlbumPhoto, WishlistItem
+logger = logging.getLogger(__name__)
+
 from .services import (
     ROTATE_ANGLES,
     add_album_photos,
@@ -311,13 +316,23 @@ def register(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(
-                request,
-                'Регистрация принята. Дождитесь активации аккаунта администратором, '
-                'затем войдите на сайт.',
-            )
-            return redirect('login')
+            try:
+                form.save()
+            except IntegrityError:
+                form.add_error('username', 'Это имя пользователя уже занято.')
+            except DatabaseError:
+                logger.exception('Registration database error')
+                messages.error(
+                    request,
+                    'Ошибка базы данных. Сообщите администратору или попробуйте позже.',
+                )
+            else:
+                messages.success(
+                    request,
+                    'Регистрация принята. Дождитесь активации аккаунта администратором, '
+                    'затем войдите на сайт.',
+                )
+                return redirect('login')
     else:
         form = RegisterForm()
     return render(request, 'collection/register.html', {'form': form})

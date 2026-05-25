@@ -135,6 +135,8 @@ LOGIN_REDIRECT_URL = 'album_list'
 LOGOUT_REDIRECT_URL = 'login'
 
 if not DEBUG:
+    # Сессии в cookie — не нужна таблица django_session на БД в /tmp.
+    SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     _secure_cookies = _env_bool('DJANGO_SECURE_COOKIES', False)
     SESSION_COOKIE_SECURE = _secure_cookies
