@@ -12,7 +12,8 @@ def _env_bool(name: str, default: bool = False) -> bool:
     return os.environ.get(name, str(default)).lower() in ('1', 'true', 'yes', 'on')
 
 
-DEBUG = _env_bool('DJANGO_DEBUG', True)
+# На Timeweb задан DJANGO_SECRET_KEY — по умолчанию не показывать страницы с DEBUG.
+DEBUG = _env_bool('DJANGO_DEBUG', not os.environ.get('DJANGO_SECRET_KEY'))
 
 SECRET_KEY = os.environ.get(
     'DJANGO_SECRET_KEY',

@@ -12,12 +12,18 @@ def health_check(_request):
     from .build_info import get_git_commit
 
     db_path = str(settings.DATABASES['default']['NAME'])
+    csrf_mw = next(
+        (m for m in settings.MIDDLEWARE if 'csrf' in m.lower()),
+        None,
+    )
     return JsonResponse({
         'status': 'ok',
         'git_commit': get_git_commit(),
         'debug': settings.DEBUG,
+        'csrf_middleware': csrf_mw,
+        'csrf_mode': 'token_only_behind_proxy',
         'behind_proxy': hasattr(settings, 'SECURE_PROXY_SSL_HEADER'),
-        'csrf_trusted_origins_count': len(settings.CSRF_TRUSTED_ORIGINS),
+        'csrf_trusted_origins': settings.CSRF_TRUSTED_ORIGINS,
         'db_path': db_path,
         'db_exists': os.path.isfile(db_path),
         'deploy_data_db': os.path.isfile('deploy-data/db.sqlite3'),
