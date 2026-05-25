@@ -9,10 +9,15 @@ def health_check(_request):
 
     from django.conf import settings
 
+    from .build_info import get_git_commit
+
     db_path = str(settings.DATABASES['default']['NAME'])
     return JsonResponse({
         'status': 'ok',
+        'git_commit': get_git_commit(),
         'debug': settings.DEBUG,
+        'behind_proxy': hasattr(settings, 'SECURE_PROXY_SSL_HEADER'),
+        'csrf_trusted_origins_count': len(settings.CSRF_TRUSTED_ORIGINS),
         'db_path': db_path,
         'db_exists': os.path.isfile(db_path),
         'deploy_data_db': os.path.isfile('deploy-data/db.sqlite3'),

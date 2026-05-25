@@ -29,7 +29,7 @@
 `migrate` и `create_vinyl_admin` — **только здесь**, не в команде запуска (иначе блокировки SQLite).
 
 ```bash
-pip3 install --upgrade -r requirements-prod.txt && mkdir -p media && ([ -f deploy-data/db.sqlite3 ] && cp deploy-data/db.sqlite3 db.sqlite3 || true) && ([ -d deploy-data/media ] && cp -r deploy-data/media/. media/ || true) && python3 manage.py collectstatic --noinput && python3 manage.py migrate --noinput && python3 manage.py create_vinyl_admin
+pip3 install --upgrade -r requirements-prod.txt && git rev-parse --short HEAD > BUILD_COMMIT.txt 2>/dev/null || true && mkdir -p media && ([ -f deploy-data/db.sqlite3 ] && cp deploy-data/db.sqlite3 db.sqlite3 || true) && ([ -d deploy-data/media ] && cp -r deploy-data/media/. media/ || true) && python3 manage.py collectstatic --noinput && python3 manage.py migrate --noinput && python3 manage.py create_vinyl_admin
 ```
 
 > Опечатка **`collectstat`** ломает сборку — нужно **`collectstatic`** (с буквой **ic** в конце).
@@ -114,7 +114,15 @@ git push origin main
 
 1. В переменных временно: `DJANGO_DEBUG` = `True` → пересборка → откройте сайт и прочитайте текст ошибки.
 2. **Логи приложения** (не только сборки) в App Platform.
-3. `https://ваш-домен/health/` — смотрите `db_exists`, `deploy_data_db` (должны быть `true`).
+3. `https://ваш-домен/health/` — смотрите `git_commit` (должен совпадать с последним push в GitHub), `db_exists`, `deploy_data_db` (должны быть `true`).
+
+### Какая сборка на сервере
+
+1. **Панель Timeweb** → ваше приложение → **История деплоев / Сборки** — там коммит и время последней успешной сборки.
+2. **В браузере:** `https://giraffeu-n1-vinyl-collection-1635.twc1.net/health/` — поле **`git_commit`** (например `5996bc7`). Сравните с GitHub → репозиторий → Commits.
+3. **Локально:** `git rev-parse --short HEAD` — должно совпасть с `git_commit` на сервере после пересборки.
+
+Если `git_commit` = `null` — старая сборка без записи коммита; обновите команду сборки (с `BUILD_COMMIT.txt`) и пересоберите.
 4. В **команде запуска** — `workers 1`, не 2 (SQLite + 2 workers = 500).
 5. В запуске должно копироваться `deploy-data/` → см. `scripts/start_production.sh`.
 6. В Git есть `deploy-data/db.sqlite3` и `deploy-data/media/`.
