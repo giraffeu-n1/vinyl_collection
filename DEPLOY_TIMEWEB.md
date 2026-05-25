@@ -36,10 +36,16 @@ pip3 install --upgrade -r requirements-prod.txt && mkdir -p media && ([ -f deplo
 
 ### Команда запуска
 
-Только gunicorn, **без** `migrate`:
+**Без** `migrate`. Копирует базу в `/tmp` и запускает **1 worker** (SQLite не любит несколько процессов):
 
 ```bash
-gunicorn vinylsite.wsgi:application --bind 0.0.0.0:8000 --workers 2 --timeout 120
+sh scripts/start_production.sh
+```
+
+Или одной строкой:
+
+```bash
+sh -c 'mkdir -p media /tmp && cp -f deploy-data/db.sqlite3 /tmp/vinyl_collection.sqlite3 2>/dev/null; cp -r deploy-data/media/. media/ 2>/dev/null; export DATABASE_PATH=/tmp/vinyl_collection.sqlite3; exec gunicorn vinylsite.wsgi:application --bind 0.0.0.0:8000 --workers 1 --timeout 120'
 ```
 
 ## 3. Переменные окружения
@@ -49,7 +55,8 @@ gunicorn vinylsite.wsgi:application --bind 0.0.0.0:8000 --workers 2 --timeout 12
 | Ключ | Пример значения |
 |------|-----------------|
 | `DJANGO_SECRET_KEY` | длинная случайная строка (сгенерируйте новую!) |
-| `DJANGO_DEBUG` | `False` |
+| `DJANGO_DEBUG` | `False` (на время отладки 500 можно поставить `True` — увидите текст ошибки) |
+| `DATABASE_PATH` | `/tmp/vinyl_collection.sqlite3` (опционально, скрипт запуска задаёт сам) |
 | `DJANGO_ALLOWED_HOSTS` | `myvinyl.ru,www.myvinyl.ru` (без пробелов, через запятую) |
 | `DJANGO_CSRF_TRUSTED_ORIGINS` | `https://myvinyl.ru,https://www.myvinyl.ru` |
 
@@ -98,12 +105,13 @@ git push origin main
 
 ### Server Error (500)
 
-1. Откройте **Логи приложения** и **лог сборки** в App Platform.
-2. Проверьте `https://ваш-домен/health/` — должен вернуть `{"status": "ok"}`.
-3. **Не дублируйте** `migrate` в команде запуска — только в сборке (см. выше).
-4. Убедитесь, что в сборке есть `collectstatic` **до** `migrate`.
-5. Пустой каталог: проверьте, что в Git есть `deploy-data/db.sqlite3` и `deploy-data/media/`, и снова пересоберите.
-6. Пересоберите приложение после изменения команд.
+1. В переменных временно: `DJANGO_DEBUG` = `True` → пересборка → откройте сайт и прочитайте текст ошибки.
+2. **Логи приложения** (не только сборки) в App Platform.
+3. `https://ваш-домен/health/` — смотрите `db_exists`, `deploy_data_db` (должны быть `true`).
+4. В **команде запуска** — `workers 1`, не 2 (SQLite + 2 workers = 500).
+5. В запуске должно копироваться `deploy-data/` → см. `scripts/start_production.sh`.
+6. В Git есть `deploy-data/db.sqlite3` и `deploy-data/media/`.
+7. Не дублируйте `migrate` в команде запуска.
 
 ### Ошибка DisallowedHost
 

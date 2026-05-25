@@ -71,8 +71,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'vinylsite.wsgi.application'
 
-_db_name = os.environ.get('DATABASE_PATH', str(BASE_DIR / 'db.sqlite3'))
-Path(_db_name).parent.mkdir(parents=True, exist_ok=True)
+if os.environ.get('DATABASE_PATH'):
+    _db_name = os.environ['DATABASE_PATH']
+elif not DEBUG:
+    _db_name = '/tmp/vinyl_collection.sqlite3'
+else:
+    _db_name = str(BASE_DIR / 'db.sqlite3')
+
+try:
+    Path(_db_name).parent.mkdir(parents=True, exist_ok=True)
+except OSError:
+    _db_name = '/tmp/vinyl_collection.sqlite3'
+    Path(_db_name).parent.mkdir(parents=True, exist_ok=True)
 
 DATABASES = {
     'default': {
@@ -103,16 +113,15 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'collection' / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# На Timeweb runtime-контейнер может не содержать staticfiles после сборки — отдаём из исходников.
+WHITENOISE_USE_FINDERS = _env_bool('WHITENOISE_USE_FINDERS', not DEBUG)
+
 STORAGES = {
     'default': {
         'BACKEND': 'django.core.files.storage.FileSystemStorage',
     },
     'staticfiles': {
-        'BACKEND': (
-            'django.contrib.staticfiles.storage.StaticFilesStorage'
-            if DEBUG
-            else 'whitenoise.storage.CompressedStaticFilesStorage'
-        ),
+        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
     },
 }
 
@@ -127,7 +136,7 @@ LOGOUT_REDIRECT_URL = 'login'
 
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    _secure_cookies = _env_bool('DJANGO_SECURE_COOKIES', True)
+    _secure_cookies = _env_bool('DJANGO_SECURE_COOKIES', False)
     SESSION_COOKIE_SECURE = _secure_cookies
     CSRF_COOKIE_SECURE = _secure_cookies
     SECURE_BROWSER_XSS_FILTER = True

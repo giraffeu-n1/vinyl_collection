@@ -5,7 +5,20 @@ from . import views
 
 
 def health_check(_request):
-    return JsonResponse({'status': 'ok'})
+    import os
+
+    from django.conf import settings
+
+    db_path = str(settings.DATABASES['default']['NAME'])
+    return JsonResponse({
+        'status': 'ok',
+        'debug': settings.DEBUG,
+        'db_path': db_path,
+        'db_exists': os.path.isfile(db_path),
+        'deploy_data_db': os.path.isfile('deploy-data/db.sqlite3'),
+        'media_exists': os.path.isdir(settings.MEDIA_ROOT),
+        'whitenoise_finders': getattr(settings, 'WHITENOISE_USE_FINDERS', False),
+    })
 
 
 urlpatterns = [
